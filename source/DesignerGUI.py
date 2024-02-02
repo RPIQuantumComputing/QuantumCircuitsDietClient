@@ -3,11 +3,22 @@ from PyQt5.QtCore import Qt, QMimeData
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QDrag, QPainter, QPen
 from PyQt5.QtWidgets import QDialog, QFormLayout, QPushButton, QLineEdit, QDialogButtonBox
+from RunSettingsGUI import SettingsWindow
 import sys
+import asyncio
+import qasync
 
 from QuantumCircuit import Circuit
 
 quantum_circuit = Circuit()
+simulation_settings = dict()
+
+def openSettingsDialog(self):
+    global simulation_settings
+    dialog = SettingsWindow(self)
+    if dialog.exec_():
+        settings = dialog.getSettings()
+        simulation_settings.update(settings)
 
 class Overlay(QWidget):
     def __init__(self, parent=None):
@@ -245,7 +256,13 @@ class MainWidget(QWidget):
         self.runButton = QPushButton("Run")
         self.loginButton = QPushButton("Login")
         global quantum_circuit
-        self.runButton.clicked.connect(quantum_circuit.run_circuit)
+
+        async def runButton():
+        	global settings
+        	openSettingsDialog(self)
+        	await quantum_circuit.run_circuit(simulation_settings)
+
+        self.runButton.clicked.connect(lambda: asyncio.ensure_future(runButton()))
         self.right_selection_area.addWidget(self.runButton)
         self.right_selection_area.addWidget(self.loginButton)
         self.right_selection_area.addStretch()  # Add stretch for alignment
@@ -457,8 +474,15 @@ class MainWidget(QWidget):
         self.active_gates.clear()
         self.update_connections()
 
-if __name__ == '__main__':
+async def main():
     app = QApplication(sys.argv)
-    main_widget = MainWidget()
-    main_widget.show()
-    sys.exit(app.exec_())
+    loop = qasync.QEventLoop(app)
+    asyncio.set_event_loop(loop)
+    
+    window = MainWidget()
+    window.show()
+    
+    await loop.run_forever()
+
+if __name__ == "__main__":
+    asyncio.run(main())

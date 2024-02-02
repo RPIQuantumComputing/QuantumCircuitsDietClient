@@ -1,9 +1,11 @@
 from ParseCircuit import parse_circuit
+from ServerInterface import injestRun
 
 class Circuit:
 	def __init__(self, debug=True):
 		self.debug = debug
 		self.defined = False
+		self.settings = None
 
 	def update_grid(self, new_grid):
 		self.defined = True
@@ -17,10 +19,15 @@ class Circuit:
 				print(k)
 			print("------------------------------------------")
 
-	def run_circuit(self):		
+	async def run_circuit(self, settings=None):
+		if(settings != None):
+			self.settings = settings	
+			self.settings['num_qubits'] = self.height	
 		instructions = parse_circuit(self.grid)
 		self.instructions = instructions
-
-		if(self.debug):
-			for instruction in instructions:
-				print(instruction)
+		results = await injestRun(self.settings, self.instructions)
+		try:
+			return results
+		except Exception as e:
+			print(f"ERROR: Failed to run circuit! {e}")
+			return dict()
