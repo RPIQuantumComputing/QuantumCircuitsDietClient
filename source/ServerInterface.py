@@ -1,7 +1,8 @@
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_ibm_runtime import Session, QiskitRuntimeService, Sampler, Options
 
-async def injestRun(settings, operations):
+def injestRun(settings, operations):
+    print("Recieved Request...")
     ## Assuming Qiskit for the moment.
     service = QiskitRuntimeService()
     options = Options()
@@ -27,9 +28,11 @@ async def injestRun(settings, operations):
     options.resilience_level = 3 if settings['errorMitigation'] == 'Intense' else 2 if settings['errorMitigation'] == 'Moderate' else 1 if settings['errorMitigation'] == 'Low' else 0
     options.optimization_level = 3 if settings['transpilation'] == 'Intense' else 2 if settings['transpilation'] == 'Moderate' else 1 if settings['transpilation'] == 'Low' else 0
     
+    print("Running Circuit...")
     with Session(service=service, backend=settings['system']) as session:
         sampler = Sampler(session=session, options=options)
         job = sampler.run(circuits=qc, shots=int(settings['shots']))
         result = job.result()
 
+    print("Finished Circuit...")
     return result.quasi_dists[0]

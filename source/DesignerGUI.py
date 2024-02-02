@@ -6,12 +6,12 @@ from PyQt5.QtWidgets import QDialog, QFormLayout, QPushButton, QLineEdit, QDialo
 from RunSettingsGUI import SettingsWindow
 import sys
 import asyncio
-import qasync
 
 from QuantumCircuit import Circuit
 
 quantum_circuit = Circuit()
 simulation_settings = dict()
+results = None
 
 def openSettingsDialog(self):
     global simulation_settings
@@ -19,6 +19,18 @@ def openSettingsDialog(self):
     if dialog.exec_():
         settings = dialog.getSettings()
         simulation_settings.update(settings)
+
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
+class SimulationWorker(QObject):
+    finished = pyqtSignal()  # Signal to indicate completion
+    # If you need to return results, consider adding a signal with parameters
+
+    def run(self):
+        # Replace this with your actual simulation logic
+        global quantum_circuit, simulation_settings, results
+        results = quantum_circuit.run_circuit(simulation_settings)
+        self.finished.emit()  # Emit the finished signal when done
 
 class Overlay(QWidget):
     def __init__(self, parent=None):
@@ -257,12 +269,12 @@ class MainWidget(QWidget):
         self.loginButton = QPushButton("Login")
         global quantum_circuit
 
-        async def runButton():
+        def runButton():
         	global settings
         	openSettingsDialog(self)
-        	await quantum_circuit.run_circuit(simulation_settings)
+        	self.startSimulation()
 
-        self.runButton.clicked.connect(lambda: asyncio.ensure_future(runButton()))
+        self.runButton.clicked.connect(runButton)
         self.right_selection_area.addWidget(self.runButton)
         self.right_selection_area.addWidget(self.loginButton)
         self.right_selection_area.addStretch()  # Add stretch for alignment
@@ -306,6 +318,32 @@ class MainWidget(QWidget):
 
         global quantum_circuit
         quantum_circuit.update_grid(self.gate_positions)
+
+    def startSimulation(self):
+        # Prepare the worker and thread
+        self.thread = QThread()
+        self.worker = SimulationWorker()
+        self.worker.moveToThread(self.thread)
+
+        # Connect signals and slots
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.finished.connect(self.simulationFinished)  # Handle cleanup or updates here
+
+        # Start the thread
+        self.thread.start()
+
+        # Disable the run button while the simulation is running
+        self.runButton.setEnabled(False)
+        self.worker.finished.connect(lambda: self.runButton.setEnabled(True))
+
+    def simulationFinished(self):
+        # This method will be called when the simulation is done
+        # Update the GUI or handle results here
+        print("Simulation finished!")
+        print(results)
 
     def place_single_qubit_gate(self, gate_name, row, col):
         # Check if the cell is already occupied
@@ -474,15 +512,8 @@ class MainWidget(QWidget):
         self.active_gates.clear()
         self.update_connections()
 
-async def main():
+if __name__ == '__main__':
     app = QApplication(sys.argv)
-    loop = qasync.QEventLoop(app)
-    asyncio.set_event_loop(loop)
-    
-    window = MainWidget()
-    window.show()
-    
-    await loop.run_forever()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    main_widget = MainWidget()
+    main_widget.show()
+    sys.exit(app.exec_())

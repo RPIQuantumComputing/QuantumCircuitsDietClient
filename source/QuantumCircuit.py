@@ -19,13 +19,13 @@ class Circuit:
 				print(k)
 			print("------------------------------------------")
 
-	async def run_circuit(self, settings=None):
+	def run_circuit(self, settings=None):
 		if(settings != None):
 			self.settings = settings	
 			self.settings['num_qubits'] = self.height	
 		instructions = parse_circuit(self.grid)
 		self.instructions = instructions
-		results = await injestRun(self.settings, self.instructions)
+		results = injestRun(self.settings, self.instructions)
 		try:
 			return results
 		except Exception as e:
