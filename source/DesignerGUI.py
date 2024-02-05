@@ -4,9 +4,12 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QDrag, QPainter, QPen
 from PyQt5.QtWidgets import QDialog, QFormLayout, QPushButton, QLineEdit, QDialogButtonBox
 from RunSettingsGUI import SettingsWindow
+import matplotlib
+matplotlib.use('Qt5Agg')
+import matplotlib.pyplot as plt
+from qiskit.visualization import plot_distribution
 import sys
 import asyncio
-
 from QuantumCircuit import Circuit
 
 quantum_circuit = Circuit()
@@ -291,6 +294,7 @@ class MainWidget(QWidget):
         self.setLayout(self.main_layout)
 
         #self.setLayout(self.main_layout)
+        print("Loaded necessary values for bootup...")
 
         # Show the maximized main widget
         self.showMaximized()
@@ -342,8 +346,11 @@ class MainWidget(QWidget):
     def simulationFinished(self):
         # This method will be called when the simulation is done
         # Update the GUI or handle results here
-        print("Simulation finished!")
         print(results)
+        plot_distribution(results, sort='value_desc')
+        print("Histrogram Plotted...")
+        print("Simulation finished!")
+        plt.show(block=False)
 
     def place_single_qubit_gate(self, gate_name, row, col):
         # Check if the cell is already occupied

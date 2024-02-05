@@ -1,5 +1,6 @@
 from ParseCircuit import parse_circuit
 from ServerInterface import injestRun
+import matplotlib.pyplot as plt
 
 class Circuit:
 	def __init__(self, debug=True):
@@ -26,6 +27,7 @@ class Circuit:
 		instructions = parse_circuit(self.grid)
 		self.instructions = instructions
 		results = injestRun(self.settings, self.instructions)
+
 		try:
 			return results
 		except Exception as e:
