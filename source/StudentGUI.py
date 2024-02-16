@@ -1,10 +1,14 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QAbstractItemView, QLineEdit, QDialog, QTextEdit)
 
+import hashlib
+
 example_assignment = []
 
 # Global variable for user data
 user_data = {}
+
+api = "https://www.quantumcircut.com"
 
 class SignInDialog(QDialog):
     def __init__(self, parent=None):
@@ -134,16 +138,53 @@ class MainWindow(QMainWindow):
             
     def downloadClicked(self):
         # Placeholder for download functionality
+        header = {
+            'session' : user_data['session']
+        }
+        
+        r = requests.get(f"{api}/download",headers=header)
+        
         print("Download button clicked")
         
     def uploadClicked(self):
         # Placeholder for upload functionality
+        header = {
+            'session' : user_data['session']
+        }
+        
+        r = requests.post(f"{api}/upload",headers=header,file=None)
         print("Upload button clicked")
 
     def openSignInDialog(self):
         dialog = SignInDialog(self)
         if dialog.exec_():
-            print("Signed in as:", user_data['username'])
+            
+            user_name_hash = hashlib.sha256(user_data['username'].encode(), usedforsecurity=True)
+            password_hash = hashlib.sha256(user_data['password'].encode(), usedforsecurity=True)
+            
+            print(user_name_hash.digest(),password_hash.digest())
+            
+            user_data['username_hash'] = user_name_hash.digest()
+            user_data['password_hash'] = password_hash.digest()
+            
+            data = {
+                'username' : user_name_hash.digest(),
+                'password' : password_hash.digest()
+            }
+            
+            r = requests.post(f"{api}/signin",json=data)
+            
+            if(r.json()['success'] == True):
+                print("Signed in as:", user_data['username'])
+            else:
+                print("Invalid Username or Password")
+            
+            user_data['session'] = r.json()['session']
+            
+            # For automatic login
+            with open("session","w") outfile:
+                outfile.write(r.json()['session'])
+                
 
     def openLectureMessaging(self):
         dialog = MessagingDialog("Lecture Messaging", self)
