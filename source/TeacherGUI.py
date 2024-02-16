@@ -1,5 +1,6 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QAbstractItemView, QLineEdit, QDialog, QTextEdit)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, 
+                             QTableWidgetItem, QLabel, QHeaderView, QAbstractItemView, QLineEdit, QDialog, QTextEdit)
 
 example_assignment = []
 
@@ -58,6 +59,34 @@ class MessagingDialog(QDialog):
             self.messageArea.append(message)
             self.inputField.clear()
 
+class AssignmentEditDialog(QDialog):
+    def __init__(self, row, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit Assignment")
+        self.setGeometry(100, 100, 300, 200)
+        layout = QVBoxLayout()
+
+        self.titleField = QLineEdit(self)
+        self.totalPointsField = QLineEdit(self)
+        self.descriptionField = QTextEdit(self)
+        updateButton = QPushButton("Update", self)
+        updateButton.clicked.connect(lambda: self.updateAssignment(row))
+
+        layout.addWidget(QLabel("Title:"))
+        layout.addWidget(self.titleField)
+        layout.addWidget(QLabel("Total Points:"))
+        layout.addWidget(self.totalPointsField)
+        layout.addWidget(QLabel("Description:"))
+        layout.addWidget(self.descriptionField)
+        layout.addWidget(updateButton)
+
+        self.setLayout(layout)
+
+    def updateAssignment(self, row):
+        # Here, you would update the assignment in your data model
+        print(f"Updated assignment at row {row} with title {self.titleField.text()}, total points {self.totalPointsField.text()}, and description {self.descriptionField.toPlainText()}")
+        self.accept()
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -65,80 +94,83 @@ class MainWindow(QMainWindow):
         self.setGeometry(100, 100, 1000, 600)
         global example_assignment
         example_assignment = [
-            ["Project 1", "2024-03-01", "Project", "A", "100/100", "Download", "Upload"],
-            ["Homework 2", "2024-03-15", "Homework", "B+", "85/100", "Download", "Upload"],
+            ["Project 1", "2024-03-01", "Project", 100, "Description here"],
+            ["Homework 2", "2024-03-15", "Homework", 85, "Description here"],
         ]
         self.initUI()
-    
+
     def initUI(self):
-        # Main widget and layout
         mainWidget = QWidget()
         self.setCentralWidget(mainWidget)
         mainLayout = QHBoxLayout()
-        
-        # Table setup
+
         self.tableWidget = QTableWidget()
-        self.tableWidget.setColumnCount(6)
-        self.tableWidget.setHorizontalHeaderLabels(["Title", "Due Date", "Assignment Type", "Score", "Download", "Upload"])
+        self.tableWidget.setColumnCount(7)  # Adjusted column count
+        self.tableWidget.setHorizontalHeaderLabels(["Edit", "Title", "Due Date", "Assignment Type", "Score", "Download", "Upload"])
         self.tableWidget.horizontalHeader().setStretchLastSection(True)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        
-        # Populate table with example data and buttons
+
         self.populateTable()
-        
-        # Layout for table
+
         tableLayout = QVBoxLayout()
         tableLayout.addWidget(self.tableWidget)
-        
-        # Right side buttons setup
-        classmateMessagingButton = QPushButton("Classmate Messaging")
-        classmateMessagingButton.clicked.connect(self.openClassmateMessaging)
+
+        # Adding Share Screen Button
+        shareScreenButton = QPushButton("Share Screen")
+        shareScreenButton.clicked.connect(self.shareScreen)
         lectureMessagingButton = QPushButton("Lecture Messaging")
         lectureMessagingButton.clicked.connect(self.openLectureMessaging)
         signInButton = QPushButton("Sign In")
         signInButton.clicked.connect(self.openSignInDialog)
 
         rightLayout = QVBoxLayout()
-        rightLayout.addWidget(classmateMessagingButton)
         rightLayout.addWidget(lectureMessagingButton)
         rightLayout.addWidget(signInButton)
-        
-        # Add layouts to the main layout
+        rightLayout.addWidget(shareScreenButton)
+
         mainLayout.addLayout(tableLayout)
         mainLayout.addLayout(rightLayout)
-        
+
         mainWidget.setLayout(mainLayout)
-        
+
     def populateTable(self):
         global example_assignment
         
-        for row_data in example_assignment:
-            row = self.tableWidget.rowCount()
+        for row, row_data in enumerate(example_assignment):
             self.tableWidget.insertRow(row)
-            for column, data in enumerate(row_data[1:-2]):  # Adjusted to skip buttons
-                self.tableWidget.setItem(row, column, QTableWidgetItem(data))
             
-            assignment_button = QPushButton(row_data[0])
-            self.tableWidget.setCellWidget(row, 0, assignment_button)
+            # Adding Edit Button
+            editBtn = QPushButton('Edit')
+            editBtn.clicked.connect(lambda _, r=row: self.openEditDialog(r))
+            self.tableWidget.setCellWidget(row, 0, editBtn)
 
-            # Adding Download Button
+            for column, data in enumerate(row_data, 1):  # Adjust to include edit button
+                if column < 5:  # Adjust for new column index
+                    self.tableWidget.setItem(row, column, QTableWidgetItem(str(data)))
+
+            # Adding Download and Upload Buttons
             downloadBtn = QPushButton('Download')
             downloadBtn.clicked.connect(self.downloadClicked)
-            self.tableWidget.setCellWidget(row, 4, downloadBtn)
+            self.tableWidget.setCellWidget(row, 5, downloadBtn)
             
-            # Adding Upload Button
             uploadBtn = QPushButton('Upload')
             uploadBtn.clicked.connect(self.uploadClicked)
-            self.tableWidget.setCellWidget(row, 5, uploadBtn)
-            
+            self.tableWidget.setCellWidget(row, 6, uploadBtn)
+
+    def openEditDialog(self, row):
+        dialog = AssignmentEditDialog(row, self)
+        dialog.exec_()
+
     def downloadClicked(self):
-        # Placeholder for download functionality
         print("Download button clicked")
-        
+
     def uploadClicked(self):
-        # Placeholder for upload functionality
         print("Upload button clicked")
+
+    def shareScreen(self):
+        # Placeholder for share screen functionality
+        print("Share Screen button clicked")
 
     def openSignInDialog(self):
         dialog = SignInDialog(self)
@@ -147,10 +179,6 @@ class MainWindow(QMainWindow):
 
     def openLectureMessaging(self):
         dialog = MessagingDialog("Lecture Messaging", self)
-        dialog.exec_()
-
-    def openClassmateMessaging(self):
-        dialog = MessagingDialog("Classmate Messaging", self)
         dialog.exec_()
 
 if __name__ == "__main__":
