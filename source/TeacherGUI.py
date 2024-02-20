@@ -1,6 +1,7 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, 
                              QTableWidgetItem, QLabel, QHeaderView, QAbstractItemView, QLineEdit, QDialog, QTextEdit)
+import DesignerGUI
 
 example_assignment = []
 
@@ -123,16 +124,23 @@ class MainWindow(QMainWindow):
         lectureMessagingButton.clicked.connect(self.openLectureMessaging)
         signInButton = QPushButton("Sign In")
         signInButton.clicked.connect(self.openSignInDialog)
+        launchQuantumCircuitsButton = QPushButton("Launch Quantum Circuits")
+        launchQuantumCircuitsButton.clicked.connect(self.launchQuantumCircuits)
 
         rightLayout = QVBoxLayout()
         rightLayout.addWidget(lectureMessagingButton)
         rightLayout.addWidget(signInButton)
         rightLayout.addWidget(shareScreenButton)
+        rightLayout.addWidget(launchQuantumCircuitsButton)
 
         mainLayout.addLayout(tableLayout)
         mainLayout.addLayout(rightLayout)
 
         mainWidget.setLayout(mainLayout)
+
+    def launchQuantumCircuits(self):
+        quantumCircuit = DesignerGUI.MainWidget()
+        quantumCircuit.show()
 
     def populateTable(self):
         global example_assignment
