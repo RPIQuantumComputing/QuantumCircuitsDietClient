@@ -11,6 +11,7 @@ from qiskit.visualization import plot_distribution
 import sys
 import asyncio
 from QuantumCircuit import Circuit
+import SaveLoad
 
 quantum_circuit = Circuit()
 simulation_settings = dict()
@@ -232,7 +233,6 @@ class MainWidget(QWidget):
         self.multiqubit_gate_connections = {}
         self.active_gates = {}  # Tracks active multiqubit gates
 
-
         # Set up the UI elements
         splitter = QSplitter(Qt.Horizontal)
         self.left_selection_area = QGridLayout()
@@ -272,6 +272,7 @@ class MainWidget(QWidget):
         self.saveButton = QPushButton("Save")
         self.loadButton = QPushButton("Load")
         self.loginButton = QPushButton("Login")
+
         global quantum_circuit
 
         # Add button connection
@@ -311,7 +312,8 @@ class MainWidget(QWidget):
         self.startSimulation()
 
     def saveCircuit(self):
-        print("Save button was pressed.")
+        global quantum_circuit
+        SaveLoad.saveCircuit(quantum_circuit)
 
     def loadCircuit(self):
         print("Load button was pressed.")
