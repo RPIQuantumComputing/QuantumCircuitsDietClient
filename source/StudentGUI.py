@@ -2,11 +2,31 @@ import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QAbstractItemView, QLineEdit, QDialog, QTextEdit)
 
 import hashlib
+import requests
+import os
 
 example_assignment = []
 
 # Global variable for user data
-user_data = {}
+user_data = {'signed_in':False}
+
+# Create session file if doesnt exist
+try:
+    with open("session/session","r") as infile:
+        infile.seek(0, os.SEEK_END) 
+        if infile.tell(): 
+            infile.seek(0) 
+            user_data["username"] = infile.read()
+            user_data["session"] = infile.read()
+            print(f"Signed in as {user_data['username']}")
+            user_data["signed_in"] = True
+
+    
+            
+except FileNotFoundError:
+    with open("session/session","w") as outfile:
+        pass
+
 
 api = "https://www.quantumcircut.com"
 
@@ -100,14 +120,21 @@ class MainWindow(QMainWindow):
         classmateMessagingButton.clicked.connect(self.openClassmateMessaging)
         lectureMessagingButton = QPushButton("Lecture Messaging")
         lectureMessagingButton.clicked.connect(self.openLectureMessaging)
-        signInButton = QPushButton("Sign In")
-        signInButton.clicked.connect(self.openSignInDialog)
 
         rightLayout = QVBoxLayout()
         rightLayout.addWidget(classmateMessagingButton)
         rightLayout.addWidget(lectureMessagingButton)
-        rightLayout.addWidget(signInButton)
-        
+       
+      
+        if(user_data["signed_in"]):
+            signOutButton = QPushButton("Sign Out")
+            signOutButton.clicked.connect(self.signOutFunction)
+            rightLayout.addWidget(signOutButton)
+        else:
+            signInButton = QPushButton("Sign In")
+            signInButton.clicked.connect(self.openSignInDialog)
+            rightLayout.addWidget(signInButton)
+      
         # Add layouts to the main layout
         mainLayout.addLayout(tableLayout)
         mainLayout.addLayout(rightLayout)
@@ -172,20 +199,34 @@ class MainWindow(QMainWindow):
                 'password' : password_hash.digest()
             }
             
-            r = requests.post(f"{api}/signin",json=data)
+            class request:
+                def json(self):
+                    return {"session":"TEST123","success":True}
+            
+            r = request() # requests.post(f"{api}/signin",json=data)
             
             if(r.json()['success'] == True):
                 print("Signed in as:", user_data['username'])
             else:
                 print("Invalid Username or Password")
+                return
             
             user_data['session'] = r.json()['session']
             
             # For automatic login
-            with open("session","w") outfile:
-                outfile.write(r.json()['session'])
+            with open("session/session","w") as outfile:
+                outfile.write(user_data['username'] + "\n")
+                outfile.write(user_data['session'])
+        
+            signOutButton = QPushButton("Sign Out")
+            signOutButton.clicked.connect(self.signOutFunction)
+            
+            self = signOutButton
                 
-
+    def signOutFunction(self):    
+        with open("session/session","w") as outfile:
+            pass
+            
     def openLectureMessaging(self):
         dialog = MessagingDialog("Lecture Messaging", self)
         dialog.exec_()
