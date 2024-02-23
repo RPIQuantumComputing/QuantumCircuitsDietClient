@@ -274,13 +274,8 @@ class MainWidget(QWidget):
         self.loginButton = QPushButton("Login")
         global quantum_circuit
 
-        def runButton():
-        	global settings
-        	openSettingsDialog(self)
-        	self.startSimulation()
-
         # Add button connection
-        self.runButton.clicked.connect(runButton)
+        self.runButton.clicked.connect(self.runCircuit)
         self.saveButton.clicked.connect(self.saveCircuit)
         self.loadButton.clicked.connect(self.loadCircuit)
 
@@ -309,6 +304,11 @@ class MainWidget(QWidget):
 
         # Show the maximized main widget
         self.showMaximized()
+    
+    def runCircuit(self):
+        global settings
+        openSettingsDialog(self)
+        self.startSimulation()
 
     def saveCircuit(self):
         print("Save button was pressed.")
