@@ -269,6 +269,8 @@ class MainWidget(QWidget):
         # Create Right Selection Area with Run and Login Buttons
         self.right_selection_area = QVBoxLayout()
         self.runButton = QPushButton("Run")
+        self.saveButton = QPushButton("Save")
+        self.loadButton = QPushButton("Load")
         self.loginButton = QPushButton("Login")
         global quantum_circuit
 
@@ -277,10 +279,19 @@ class MainWidget(QWidget):
         	openSettingsDialog(self)
         	self.startSimulation()
 
+        # Add button connection
         self.runButton.clicked.connect(runButton)
+        self.saveButton.clicked.connect(self.saveCircuit)
+        self.loadButton.clicked.connect(self.loadCircuit)
+
+        # Add buttons to the right selection area
         self.right_selection_area.addWidget(self.runButton)
+        self.right_selection_area.addWidget(self.saveButton)
+        self.right_selection_area.addWidget(self.loadButton)
         self.right_selection_area.addWidget(self.loginButton)
-        self.right_selection_area.addStretch()  # Add stretch for alignment
+
+        # Add stretch for alignment
+        self.right_selection_area.addStretch() 
 
         # Main layout setup
         self.main_layout = QHBoxLayout()
@@ -298,6 +309,12 @@ class MainWidget(QWidget):
 
         # Show the maximized main widget
         self.showMaximized()
+
+    def saveCircuit(self):
+        print("Save button was pressed.")
+
+    def loadCircuit(self):
+        print("Load button was pressed.")
 
     def move_gate_within_grid(self, source_widget, new_row, new_col):
         if self.gate_positions[new_row][new_col] == "":
