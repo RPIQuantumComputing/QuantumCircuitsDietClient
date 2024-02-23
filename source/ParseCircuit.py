@@ -1,4 +1,4 @@
-idS = {"H", "S", "T", "X(1/2)", "Y(1/2)", "-", "M"}
+idS = {"H", "S", "T", "X", "Y", "Z", "X(1/2)", "Y(1/2)", "-", "M"}
 idC = {"CNOT": 1, "CCX": 2, "CX": 1, "Toffoli": 2}
 parsingFlag = False
 
