@@ -1,5 +1,6 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem, QLabel, QHeaderView, QAbstractItemView, QLineEdit, QDialog, QTextEdit)
+import DesignerGUI
 
 import hashlib
 
@@ -96,6 +97,8 @@ class MainWindow(QMainWindow):
         tableLayout.addWidget(self.tableWidget)
         
         # Right side buttons setup
+        launchQuantumCircuitsButton = QPushButton("Launch Quantum Circuits")
+        launchQuantumCircuitsButton.clicked.connect(self.launchQuantumCircuits)
         classmateMessagingButton = QPushButton("Classmate Messaging")
         classmateMessagingButton.clicked.connect(self.openClassmateMessaging)
         lectureMessagingButton = QPushButton("Lecture Messaging")
@@ -103,7 +106,9 @@ class MainWindow(QMainWindow):
         signInButton = QPushButton("Sign In")
         signInButton.clicked.connect(self.openSignInDialog)
 
+        # Add buttons to the right layout
         rightLayout = QVBoxLayout()
+        rightLayout.addWidget(launchQuantumCircuitsButton)
         rightLayout.addWidget(classmateMessagingButton)
         rightLayout.addWidget(lectureMessagingButton)
         rightLayout.addWidget(signInButton)
@@ -111,8 +116,11 @@ class MainWindow(QMainWindow):
         # Add layouts to the main layout
         mainLayout.addLayout(tableLayout)
         mainLayout.addLayout(rightLayout)
-        
         mainWidget.setLayout(mainLayout)
+    
+    def launchQuantumCircuits(self):
+        quantumCircuit = DesignerGUI.MainWidget()
+        quantumCircuit.show()
         
     def populateTable(self):
         global example_assignment
