@@ -1,5 +1,5 @@
 from datetime import datetime
-import hashlib, json
+import hashlib, json, os
 import ParseCircuit
 
 
@@ -22,8 +22,13 @@ def saveCircuit(circuit):
     saveData['col'] = numColumns
     saveData["inst"] = str(instructions)
 
+    dirName = "saves"
+    fileName = "save.qc"
     jsonObj = json.dumps(saveData, indent=4)
-    with open("save.qc", 'w') as saveFile:
+    if not os.path.exists(dirName):
+        os.makedirs(dirName)
+    filePath = os.path.join(dirName, fileName)  
+    with open(filePath, 'w') as saveFile:
         saveFile.write(jsonObj)
     
     print("Save successful.")
