@@ -46,3 +46,10 @@ def parse_circuit(grid):
                 instructions.append(Gate(gate_type, target, controls))
 
     return instructions
+
+
+def parse_instructions(num_rows, num_columns, instructions):
+    newGrid = [[' ' for _ in range(num_columns)] for _ in range(num_rows)]
+    
+    
+    pass

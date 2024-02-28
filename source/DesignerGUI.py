@@ -314,9 +314,12 @@ class MainWidget(QWidget):
     def saveCircuit(self):
         global quantum_circuit
         SaveLoad.saveCircuit(quantum_circuit)
+        print("Save was successful.")
 
     def loadCircuit(self):
-        print("Load button was pressed.")
+        global quantum_circuit
+        quantum_circuit.update_grid(SaveLoad.loadCircuit())
+        print("Load was successful.")
 
     def move_gate_within_grid(self, source_widget, new_row, new_col):
         if self.gate_positions[new_row][new_col] == "":
