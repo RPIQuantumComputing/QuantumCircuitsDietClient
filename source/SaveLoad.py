@@ -35,8 +35,9 @@ def saveCircuit(circuit):
 
 
 def loadCircuit():
-    filePath = os.path.join("saves", "save.qc")
-    if not os.path.exists(filePath):
+    dirName = "saves"
+    filePath = os.path.join(dirName, "save.qc")
+    if not (os.path.exists(dirName) or os.path.exists(filePath)):
         raise RuntimeError("Save file does not exist.")
 
     jsonString = ""
@@ -47,8 +48,8 @@ def loadCircuit():
 
     numRows = loadData['row']
     numColumns = loadData['col']
-    instructionsString = loadData['inst']
+    instStr = loadData['inst']
 
-    # instructionString -> list of dict (instr)
-
-    return ParseCircuit.parse_instructions(numRows, numColumns, None)
+    instructions = parseInstStr(instStr)
+        
+    return ParseCircuit.parse_instructions(numRows, numColumns, instructions)
