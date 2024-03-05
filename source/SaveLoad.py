@@ -53,7 +53,7 @@ def loadCircuit():
     instructions = parseInstStr(instStr)
 
     if instStr != str(instructions):
-        raise RuntimeError("Parsing save file failed.")
+        raise RuntimeError("Save file parsing failed.")
         
     return ParseCircuit.parse_instructions(numRows, numColumns, instructions)
 
