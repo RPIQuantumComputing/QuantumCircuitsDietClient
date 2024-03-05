@@ -51,5 +51,59 @@ def loadCircuit():
     instStr = loadData['inst']
 
     instructions = parseInstStr(instStr)
+
+    if instStr != str(instructions):
+        raise RuntimeError("Parsing save file failed.")
         
     return ParseCircuit.parse_instructions(numRows, numColumns, instructions)
+
+
+# The fatal and lame limit of a C programmer...
+def parseInstStr(instStr):
+    instStrLen = len(instStr)
+    if instStrLen <= 2:
+        return []
+
+    gateStrList = []
+    gateStrStart, gateStrEnd = 0, 0
+    for i in range(instStrLen):
+        if instStr[i] == '{':
+            gateStrStart = i + 1
+        elif instStr[i] == '}':
+            gateStrEnd = i
+        
+        if gateStrStart != 0 and gateStrEnd != 0:
+            gateStrList.append(instStr[gateStrStart:gateStrEnd])
+            gateStrStart, gateStrEnd = 0, 0
+
+    instructions = []
+    for gateStr in gateStrList:
+        gateInfo = gateStr.split(', ')
+        gateNameStr = gateInfo[0]
+        gateTargetStr = gateInfo[-1]
+
+        gateNameStart = len("\'Name\': \'")
+        gateNameEnd = len(gateNameStr) - 1
+        gateName = gateNameStr[gateNameStart:gateNameEnd]
+
+        gateControlsStart, gateControlsEnd = 0, 0
+        for i in range(len(gateStr)):
+            if gateStr[i] == '[':
+                gateControlsStart = i + 1
+            elif gateStr[i] == ']':
+                gateControlsEnd = i
+                break
+
+        gateControlsStr = gateStr[gateControlsStart:gateControlsEnd]
+        gateControls = []
+        if gateControlsStr != '':
+            gateControlsStrList = gateControlsStr.split(', ')
+            gateControls = [int(i) for i in gateControlsStrList]
+
+        gateTargetStart = len("\'Target\': ")
+        gateTargetEnd = len(gateTargetStr)
+        gateTarget = int(gateTargetStr[gateTargetStart:gateTargetEnd])
+
+        instructions.append(ParseCircuit.Gate(gateName, gateTarget, gateControls))
+
+    return instructions
