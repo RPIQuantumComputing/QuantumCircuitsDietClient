@@ -81,5 +81,10 @@ def parse_instructions(num_rows, num_columns, instructions):
         
         if not gate_filled:
             raise RuntimeError("Gate filling process failed.")
+        
+    for i in range(num_rows):
+        for j in range(num_columns):
+            if new_grid[i][j] == '|' or new_grid[i][j] == ' ':
+                new_grid[i][j] = ''
 
     return new_grid
