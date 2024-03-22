@@ -15,7 +15,7 @@ class Circuit:
 		self.grid = new_grid
 
 		if(self.debug):
-			print("-------------GRID CHANGE----------------")
+			print("---------------GRID CHANGE----------------")
 			for k in self.grid:
 				print(k)
 			print("------------------------------------------")

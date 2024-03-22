@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QMessageBox
-from PyQt5.QtCore import Qt, QMimeData
+from PyQt5.QtCore import Qt, QMimeData, QObject, QPoint, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QDrag, QPainter, QPen
 from PyQt5.QtWidgets import QDialog, QFormLayout, QPushButton, QLineEdit, QDialogButtonBox
@@ -23,8 +23,6 @@ def openSettingsDialog(self):
     if dialog.exec_():
         settings = dialog.getSettings()
         simulation_settings.update(settings)
-
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 class SimulationWorker(QObject):
     finished = pyqtSignal()  # Signal to indicate completion
