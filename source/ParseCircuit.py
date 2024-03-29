@@ -49,7 +49,7 @@ def parse_circuit(grid):
 
 
 def parse_instructions(num_rows, num_columns, instructions):
-    new_grid = [[' '] * num_columns] * num_rows
+    new_grid = [[' ' for _ in range(num_columns)] for _ in range(num_rows)]
 
     for gate in instructions:
         gate_filled = False
@@ -74,8 +74,8 @@ def parse_instructions(num_rows, num_columns, instructions):
                 if controls_exist:
                     for block in range(controls_min, controls_max+1):
                         new_grid[block][column] = '*' if block in gate_controls else '|'
-                    new_grid[gate_target][column] = gate_name
-                
+                new_grid[gate_target][column] = gate_name
+
                 gate_filled = True
                 break
         
