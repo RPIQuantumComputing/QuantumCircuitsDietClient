@@ -320,6 +320,7 @@ class MainWidget(QWidget):
         num_cols = len(loaded_circuit[0])
 
         for col in range(num_cols):
+            # Gathering information from the loadCircuit() column by column.
             single_qubit_gates = {row: loaded_circuit[row][col] for row in range(num_rows) 
                                   if loaded_circuit[row][col] not in self.multiqubit_gates.keys()
                                   and loaded_circuit[row][col] != ''}
@@ -333,14 +334,17 @@ class MainWidget(QWidget):
                 elif len(controls) == 0:
                     raise RuntimeError("Multiqubit gate with no control gates.")
                 else:
+                    # Placing multi-qubit gates.
                     multi_qubit_gate_row, multi_qubit_gate_name = multi_qubit_gates.popitem()
                     self.place_multiqubit_gate(multi_qubit_gate_name, col, multi_qubit_gate_row)
 
+                    # Placing control gates.
                     while len(controls) > 0:
                         control_row, control_name = controls.popitem()
                         control_name = multi_qubit_gate_name
                         self.place_multiqubit_gate(control_name, col, control_row) 
 
+            # Placing single-qubit gates.
             while len(single_qubit_gates) > 0:
                 single_qubit_gate_row, single_qubit_gate_name = single_qubit_gates.popitem()
                 self.place_single_qubit_gate(single_qubit_gate_name, col, single_qubit_gate_row)           
