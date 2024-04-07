@@ -58,15 +58,13 @@ def parse_instructions(num_rows, num_columns, instructions):
         gate_target = gate.target
         gate_controls = gate.controls
 
-        controls_exist = len(gate_controls) != 0
+        controls_exist = len(gate_controls) > 0
         controls_min = min(gate_controls) if controls_exist else 0
         controls_max = max(gate_controls) if controls_exist else 0
 
         # Searching for the available column.
-
         for column in range(num_columns):
             # Generating occuption list, which indicates the availability of this gate on this column.
-
             occupation_list = []
             if controls_exist:
                 occupation_list = [new_grid[control][column] != ' ' for control in range(controls_min, controls_max+1)]
@@ -77,7 +75,6 @@ def parse_instructions(num_rows, num_columns, instructions):
                 continue
             else:
                 # Placing the gate since this column is available.
-
                 if controls_exist:
                     for block in range(controls_min, controls_max+1):
                         new_grid[block][column] = '*' if block in gate_controls else '|'
@@ -87,12 +84,10 @@ def parse_instructions(num_rows, num_columns, instructions):
                 break
         
         # Throws an exception if a gate cannot be placed.
-
         if not gate_filled:
             raise RuntimeError("Gate filling process failed.")
     
-    # Sanitizing redundant information.
-
+    # Sanitizing the redundant information.
     for i in range(num_rows):
         for j in range(num_columns):
             if new_grid[i][j] == '|' or new_grid[i][j] == ' ':

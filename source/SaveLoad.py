@@ -54,8 +54,10 @@ def loadCircuit():
 
     if instStr != str(instructions):
         raise RuntimeError("Save file parsing failed.")
-        
-    return ParseCircuit.parse_instructions(numRows, numColumns, instructions)
+    
+    parsedCircuit = ParseCircuit.parse_instructions(numRows, numColumns, instructions)
+    
+    return parsedCircuit
 
 
 # The fatal and lame limit of a C programmer...
