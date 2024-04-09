@@ -24,7 +24,7 @@ def parse_circuit(grid):
         for row in range(num_rows):
             cell = grid[row][col]
 
-            if cell == ' ':  # Ignore empty cells
+            if cell == '':  # Ignore empty cells
                 continue
 
             if cell == '*':  # Control qubit
@@ -40,7 +40,7 @@ def parse_circuit(grid):
 
         # Process multi-qubit gate at the end of the column if present
         if gate_type:
-            target_candidates = [row for row in range(num_rows) if grid[row][col] not in ('*', ' ') and row not in controls]
+            target_candidates = [row for row in range(num_rows) if grid[row][col] not in ('*', '') and row not in controls]
             if target_candidates:
                 target = target_candidates[0]
                 instructions.append(Gate(gate_type, target, controls))
@@ -49,7 +49,7 @@ def parse_circuit(grid):
 
 
 def parse_instructions(num_rows, num_columns, instructions):
-    new_grid = [[' ' for _ in range(num_columns)] for _ in range(num_rows)]
+    new_grid = [['' for _ in range(num_columns)] for _ in range(num_rows)]
 
     for gate in instructions:
         gate_filled = False
@@ -67,8 +67,8 @@ def parse_instructions(num_rows, num_columns, instructions):
             # Generating occuption list, which indicates the availability of this gate on this column.
             occupation_list = []
             if controls_exist:
-                occupation_list = [new_grid[control][column] != ' ' for control in range(controls_min, controls_max+1)]
-            occupation_list.append(new_grid[gate_target][column] != ' ')
+                occupation_list = [new_grid[control][column] != '' for control in range(controls_min, controls_max+1)]
+            occupation_list.append(new_grid[gate_target][column] != '')
 
             if True in occupation_list:
                 # Skipping this column if this column is not available.
@@ -90,7 +90,9 @@ def parse_instructions(num_rows, num_columns, instructions):
     # Sanitizing the redundant information.
     for i in range(num_rows):
         for j in range(num_columns):
-            if new_grid[i][j] == '|' or new_grid[i][j] == ' ':
+            if new_grid[i][j] == '|':
                 new_grid[i][j] = ''
+    
+    print(new_grid)
 
     return new_grid
