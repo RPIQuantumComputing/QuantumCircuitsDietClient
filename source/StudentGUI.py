@@ -28,7 +28,7 @@ except FileNotFoundError:
         pass
 
 
-api = "https://www.quantumcircut.com"
+api = "http://127.0.0.1:5000/api"#"https://www.quantumcircut.com"
 
 class SignInDialog(QDialog):
     def __init__(self, parent=None):
@@ -169,42 +169,57 @@ class MainWindow(QMainWindow):
             'session' : user_data['session']
         }
         
-        r = requests.get(f"{api}/download",headers=header)
+        param = {
+            'file_owner': user_data['username'],
+            'file_name' : "Test"
+        }
+
+        r = requests.get(f"{api}/download",headers=header,params=param)
         
-        print("Download button clicked")
+        if(r.status_code == 200):
+            print("Download Successful")
+        else:
+            print("Error Downloading")
+
         
     def uploadClicked(self):
         # Placeholder for upload functionality
         header = {
             'session' : user_data['session']
         }
+
+        data = {
+            'circuit_json' : None
+        }
         
-        r = requests.post(f"{api}/upload",headers=header,file=None)
-        print("Upload button clicked")
+        r = requests.post(f"{api}/upload",headers=header,data=data)
+
+        if(r.status_code == 200):
+            print("Upload Successful")
+        else:
+            print("Error Uploading")
+
 
     def openSignInDialog(self):
         dialog = SignInDialog(self)
         if dialog.exec_():
             
-            user_name_hash = hashlib.sha256(user_data['username'].encode(), usedforsecurity=True)
             password_hash = hashlib.sha256(user_data['password'].encode(), usedforsecurity=True)
             
-            print(user_name_hash.digest(),password_hash.digest())
-            
-            user_data['username_hash'] = user_name_hash.digest()
-            user_data['password_hash'] = password_hash.digest()
+            user_data['password_hash'] = password_hash.hexdigest()
             
             data = {
-                'username' : user_name_hash.digest(),
-                'password' : password_hash.digest()
+                'username' : user_data['username'],
+                'password' : password_hash.hexdigest()
             }
             
+            # TEST
             class request:
                 def json(self):
                     return {"session":"TEST123","success":True}
             
-            r = request() # requests.post(f"{api}/signin",json=data)
-            
+            r = requests.post(f"{api}/login",json=data)
+
             if(r.json()['success'] == True):
                 print("Signed in as:", user_data['username'])
             else:
