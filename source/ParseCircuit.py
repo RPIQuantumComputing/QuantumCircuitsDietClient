@@ -11,6 +11,7 @@ class Gate:
     def __repr__(self):
         return f"{{'Name': '{self.name}', 'Controls': {self.controls}, 'Target': {self.target}}}"
 
+
 def parse_circuit(grid):
     instructions = []
     num_rows = len(grid)
@@ -51,20 +52,23 @@ def parse_circuit(grid):
 def parse_instructions(num_rows, num_columns, instructions):
     new_grid = [['' for _ in range(num_columns)] for _ in range(num_rows)]
 
+    column = 0
     for gate in instructions:
-        gate_filled = False
-
+        # Information of the gate.
         gate_name = gate.name
         gate_target = gate.target
         gate_controls = gate.controls
 
+        # Information of the control gates.
         controls_exist = len(gate_controls) > 0
         controls_min = min(gate_controls) if controls_exist else 0
         controls_max = max(gate_controls) if controls_exist else 0
 
-        # Searching for the available column.
-        for column in range(num_columns):
-            # Generating occuption list, which indicates the availability of this gate on this column.
+        while True:
+            if column not in range(num_columns):
+                # Raising a runtime error if the column surpasses num_columns.
+                raise RuntimeError("Gate filling process failed.")
+
             occupation_list = []
             if controls_exist:
                 occupation_list = [new_grid[control][column] != '' for control in range(controls_min, controls_max+1)]
@@ -72,27 +76,19 @@ def parse_instructions(num_rows, num_columns, instructions):
 
             if True in occupation_list:
                 # Skipping this column if this column is not available.
-                continue
+                column += 1
             else:
                 # Placing the gate since this column is available.
                 if controls_exist:
                     for block in range(controls_min, controls_max+1):
                         new_grid[block][column] = '*' if block in gate_controls else '|'
                 new_grid[gate_target][column] = gate_name
-
-                gate_filled = True
                 break
-        
-        # Throws an exception if a gate cannot be placed.
-        if not gate_filled:
-            raise RuntimeError("Gate filling process failed.")
     
     # Sanitizing the redundant information.
     for i in range(num_rows):
         for j in range(num_columns):
             if new_grid[i][j] == '|':
                 new_grid[i][j] = ''
-    
-    print(new_grid)
 
     return new_grid

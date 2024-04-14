@@ -34,7 +34,7 @@ def saveCircuit(circuit):
         saveFile.write(jsonObj)
 
 
-def loadCircuit():
+def loadCircuit(mainGUI):
     dirName = "saves"
     filePath = os.path.join(dirName, "save.qc")
     if not (os.path.exists(dirName) or os.path.exists(filePath)):
@@ -48,20 +48,18 @@ def loadCircuit():
 
     numRows = loadData['row']
     numColumns = loadData['col']
-    instStr = loadData['inst']
+    instructionString = loadData['inst']
 
-    instructions = parseInstStr(instStr)
+    instructions = parseInstructionString(instructionString)
 
-    if instStr != str(instructions):
+    if instructionString != str(instructions):
         raise RuntimeError("Save file parsing failed.")
     
     parsedCircuit = ParseCircuit.parse_instructions(numRows, numColumns, instructions)
-    
-    return parsedCircuit
+    placeGates(mainGUI, parsedCircuit)
 
 
-# The fatal and lame limit of a C programmer...
-def parseInstStr(instStr):
+def parseInstructionString(instStr):
     instStrLen = len(instStr)
     if instStrLen <= 2:
         return []
@@ -109,3 +107,49 @@ def parseInstStr(instStr):
         instructions.append(ParseCircuit.Gate(gateName, gateTarget, gateControls))
 
     return instructions
+
+
+def placeGates(mainGUI, parsedCircuit):
+    num_rows = len(parsedCircuit)
+    num_cols = len(parsedCircuit[0])
+
+    for col in range(num_cols):
+        single_qubit_gates = {}
+        multi_qubit_gates = {}
+        controls = []
+
+        # Gathering information from the loadCircuit() column by column.
+        for row in range(num_rows):
+            if parsedCircuit[row][col] in mainGUI.singlequbit_gates.keys():
+                if row in single_qubit_gates.keys():
+                    raise RuntimeError("Multiple gates at the same place.")
+                single_qubit_gates[row] = parsedCircuit[row][col]
+            elif parsedCircuit[row][col] in mainGUI.multiqubit_gates.keys():
+                if row in multi_qubit_gates.keys():
+                    raise RuntimeError("Multiple gates at the same place.")
+                multi_qubit_gates[row] = parsedCircuit[row][col]
+            elif parsedCircuit[row][col] == '*':
+                if row in controls:
+                    raise RuntimeError("Multiple gates at the same place.")
+                controls.append(row)
+
+        if len(multi_qubit_gates) > 0:
+            if len(multi_qubit_gates) != 1:
+                raise RuntimeError("More than one multiqubit gates in a column.")
+            elif len(controls) == 0:
+                raise RuntimeError("Multiqubit gate with no control gates.")
+            else:
+                multi_qubit_gate_row, multi_qubit_gate_name = multi_qubit_gates.popitem()
+
+                # Placing control gates.
+                while len(controls) > 0:
+                    control_row = controls.pop()
+                    mainGUI.place_multiqubit_gate(multi_qubit_gate_name, col, control_row)
+
+                # Placing multi-qubit gates.
+                mainGUI.place_multiqubit_gate(multi_qubit_gate_name, col, multi_qubit_gate_row)
+
+        # Placing single-qubit gates.
+        while len(single_qubit_gates) > 0:
+            single_qubit_gate_row, single_qubit_gate_name = single_qubit_gates.popitem()
+            mainGUI.place_single_qubit_gate(single_qubit_gate_name, single_qubit_gate_row, col)

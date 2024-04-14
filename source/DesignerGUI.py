@@ -227,6 +227,15 @@ class MainWidget(QWidget):
             "Toffoli": QuantumGate("Toffoli", 2, 1)
             # Add more gates as needed
         }
+        self.singlequbit_gates = {
+            "H": QuantumGate("H", 1, 1), 
+            "T": QuantumGate("T", 1, 1), 
+            "S": QuantumGate("S", 1, 1), 
+            "X": QuantumGate("X", 1, 1), 
+            "Y": QuantumGate("Y", 1, 1), 
+            "Z": QuantumGate("Z", 1, 1)
+            # Add more gates as needed
+        }
         self.gate_positions = []  # This will be a 2D list updated in setupGrid
         self.multiqubit_gate_connections = {}
         self.active_gates = {}  # Tracks active multiqubit gates
@@ -315,40 +324,7 @@ class MainWidget(QWidget):
         print("Save was successful.")
 
     def loadCircuit(self):
-        loaded_circuit = SaveLoad.loadCircuit()
-        num_rows = len(loaded_circuit)
-        num_cols = len(loaded_circuit[0])
-
-        for col in range(num_cols):
-            # Gathering information from the loadCircuit() column by column.
-            single_qubit_gates = {row: loaded_circuit[row][col] for row in range(num_rows) 
-                                  if loaded_circuit[row][col] not in self.multiqubit_gates.keys()
-                                  and loaded_circuit[row][col] != ''}
-            multi_qubit_gates = {row: loaded_circuit[row][col] for row in range(num_rows) 
-                                 if loaded_circuit[row][col] in self.multiqubit_gates.keys()}
-            controls = {row: '*' for row in range(num_rows) if loaded_circuit[row][col] == '*'}
-            
-            if len(multi_qubit_gates) > 0:
-                if len(multi_qubit_gates) != 1:
-                    raise RuntimeError("More than one multiqubit gates in a column.")
-                elif len(controls) == 0:
-                    raise RuntimeError("Multiqubit gate with no control gates.")
-                else:
-                    # Placing multi-qubit gates.
-                    multi_qubit_gate_row, multi_qubit_gate_name = multi_qubit_gates.popitem()
-                    self.place_multiqubit_gate(multi_qubit_gate_name, col, multi_qubit_gate_row)
-
-                    # Placing control gates.
-                    while len(controls) > 0:
-                        control_row, control_name = controls.popitem()
-                        control_name = multi_qubit_gate_name
-                        self.place_multiqubit_gate(control_name, col, control_row) 
-
-            # Placing single-qubit gates.
-            while len(single_qubit_gates) > 0:
-                single_qubit_gate_row, single_qubit_gate_name = single_qubit_gates.popitem()
-                self.place_single_qubit_gate(single_qubit_gate_name, col, single_qubit_gate_row)           
-            
+        SaveLoad.loadCircuit(self)
         print("Load was successful.")
 
     def move_gate_within_grid(self, source_widget, new_row, new_col):
@@ -576,3 +552,4 @@ if __name__ == '__main__':
     main_widget = MainWidget()
     main_widget.show()
     sys.exit(app.exec_())
+    
