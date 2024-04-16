@@ -15,13 +15,13 @@ class Circuit:
 		self.grid = new_grid
 
 		if(self.debug):
-			print("-------------GRID CHANGE----------------")
+			print("---------------GRID CHANGE----------------")
 			for k in self.grid:
 				print(k)
 			print("------------------------------------------")
 
 	def run_circuit(self, settings=None):
-		if(settings != None):
+		if settings != None:
 			self.settings = settings	
 			self.settings['num_qubits'] = self.height	
 		instructions = parse_circuit(self.grid)

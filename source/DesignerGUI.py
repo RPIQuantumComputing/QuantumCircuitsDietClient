@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout, QSplitter, QMessageBox
-from PyQt5.QtCore import Qt, QMimeData
+from PyQt5.QtCore import Qt, QMimeData, QObject, QPoint, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtGui import QDrag, QPainter, QPen
 from PyQt5.QtWidgets import QDialog, QFormLayout, QPushButton, QLineEdit, QDialogButtonBox
@@ -11,6 +11,7 @@ from qiskit.visualization import plot_distribution
 import sys
 import asyncio
 from QuantumCircuit import Circuit
+import SaveLoad
 
 quantum_circuit = Circuit()
 simulation_settings = dict()
@@ -22,8 +23,6 @@ def openSettingsDialog(self):
     if dialog.exec_():
         settings = dialog.getSettings()
         simulation_settings.update(settings)
-
-from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 class SimulationWorker(QObject):
     finished = pyqtSignal()  # Signal to indicate completion
@@ -228,10 +227,18 @@ class MainWidget(QWidget):
             "Toffoli": QuantumGate("Toffoli", 2, 1)
             # Add more gates as needed
         }
+        self.singlequbit_gates = {
+            "H": QuantumGate("H", 1, 1), 
+            "T": QuantumGate("T", 1, 1), 
+            "S": QuantumGate("S", 1, 1), 
+            "X": QuantumGate("X", 1, 1), 
+            "Y": QuantumGate("Y", 1, 1), 
+            "Z": QuantumGate("Z", 1, 1)
+            # Add more gates as needed
+        }
         self.gate_positions = []  # This will be a 2D list updated in setupGrid
         self.multiqubit_gate_connections = {}
         self.active_gates = {}  # Tracks active multiqubit gates
-
 
         # Set up the UI elements
         splitter = QSplitter(Qt.Horizontal)
@@ -269,18 +276,25 @@ class MainWidget(QWidget):
         # Create Right Selection Area with Run and Login Buttons
         self.right_selection_area = QVBoxLayout()
         self.runButton = QPushButton("Run")
+        self.saveButton = QPushButton("Save")
+        self.loadButton = QPushButton("Load")
         self.loginButton = QPushButton("Login")
+
         global quantum_circuit
 
-        def runButton():
-        	global settings
-        	openSettingsDialog(self)
-        	self.startSimulation()
+        # Add button connection
+        self.runButton.clicked.connect(self.runCircuit)
+        self.saveButton.clicked.connect(self.saveCircuit)
+        self.loadButton.clicked.connect(self.loadCircuit)
 
-        self.runButton.clicked.connect(runButton)
+        # Add buttons to the right selection area
         self.right_selection_area.addWidget(self.runButton)
+        self.right_selection_area.addWidget(self.saveButton)
+        self.right_selection_area.addWidget(self.loadButton)
         self.right_selection_area.addWidget(self.loginButton)
-        self.right_selection_area.addStretch()  # Add stretch for alignment
+
+        # Add stretch for alignment
+        self.right_selection_area.addStretch() 
 
         # Main layout setup
         self.main_layout = QHBoxLayout()
@@ -298,6 +312,20 @@ class MainWidget(QWidget):
 
         # Show the maximized main widget
         self.showMaximized()
+    
+    def runCircuit(self):
+        global settings
+        openSettingsDialog(self)
+        self.startSimulation()
+
+    def saveCircuit(self):
+        global quantum_circuit
+        SaveLoad.saveCircuit(quantum_circuit)
+        print("Save was successful.")
+
+    def loadCircuit(self):
+        SaveLoad.loadCircuit(self)
+        print("Load was successful.")
 
     def move_gate_within_grid(self, source_widget, new_row, new_col):
         if self.gate_positions[new_row][new_col] == "":
@@ -524,3 +552,4 @@ if __name__ == '__main__':
     main_widget = MainWidget()
     main_widget.show()
     sys.exit(app.exec_())
+    
