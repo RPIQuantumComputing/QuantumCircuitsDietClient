@@ -1,5 +1,23 @@
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit_ibm_runtime import Session, QiskitRuntimeService, Sampler, Options
+from qiskit_aer import AerSimulator
+import qiskit 
+
+def filter_dictionary(data):
+    # Create a new dictionary to store the filtered data
+    filtered_data = {}
+    
+    # Iterate over each item in the original dictionary
+    for key, value in data.items():
+        # Split the key on the space
+        parts = key.split()
+        
+        # Check if the key has exactly two parts and the second part is not all zeros
+        if len(parts) == 2 and '00' in parts[1]:
+            # If the condition is met, add it to the filtered dictionary
+            filtered_data[parts[0]] = value
+    
+    return filtered_data
 
 def injestRun(settings, operations):
     print("Recieved Request...")
@@ -29,12 +47,20 @@ def injestRun(settings, operations):
     options.optimization_level = 3 if settings['transpilation'] == 'Intense' else 2 if settings['transpilation'] == 'Moderate' else 1 if settings['transpilation'] == 'Low' else 0
     
     print("Running Circuit...")
-    with Session(service=service, backend=settings['system']) as session:
-        sampler = Sampler(session=session, options=options)
-        if("qasm" not in settings['system']):
-            job = sampler.run(circuits=qc, shots=int(settings['shots']))
-        else:
-            job = sampler.run(circuits=qc)
-        result = job.result()
+    if('qasm' in settings['system']):
+        print("Redirecting to local simulator...")
+        aersim = AerSimulator()
+        result = aersim.run(qc).result()
+        print("Finished Circuit...")
+        return filter_dictionary(result.get_counts(0))
+    else:
+        with Session(service=service, backend=settings['system']) as session:
+            sampler = Sampler(session=session, options=options)
+            if("qasm" not in settings['system']):
+                job = sampler.run(circuits=qc, shots=int(settings['shots']))
+            else:
+                job = sampler.run(circuits=qc)
+            result = job.result()
+    
     print("Finished Circuit...")
     return result.quasi_dists[0]
