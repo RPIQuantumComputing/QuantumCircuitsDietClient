@@ -82,9 +82,57 @@ class MessagingDialog(QDialog):
             self.messageArea.append(message)
             self.inputField.clear()
 
+class Assignments:
+    def __init__(self,main_window_ref, name, date, category, letter_grade, fraction_grade, owner, file_name):
+        self.main_window_ref = main_window_ref
+        self.name = name
+        self.date = date
+        self.category = category
+        self.letter_grade = letter_grade
+        self.fraction_grade = fraction_grade
+        self.owner = owner
+        self.file_name = file_name
+    
+    def upload(self):
+        header = {
+            'session' : user_data['session']
+        }
+
+        data = {
+            'circuit_json' : None
+        }
+        print(f"Upload: {self.name}")
+        
+        r = requests.post(f"{api}/upload",headers=header,data=data)
+
+        if(r.status_code == 200):
+            print("Upload Successful")
+        else:
+            print("Error Uploading")
+            
+
+    def download(self):
+        header = {
+            'session' : user_data['session']
+        }
+        
+        param = {
+            'file_owner': user_data['username'],
+            'file_name' : "Test"
+        }
+        print(f"Download: {self.name}")
+        
+        r = requests.get(f"{api}/download",headers=header,params=param)
+        
+        if(r.status_code == 200):
+            print("Download Successful")
+        else:
+            print("Error Downloading")
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle("Educational Interface")
         self.setGeometry(100, 100, 1000, 600)
         global example_assignment
@@ -92,8 +140,14 @@ class MainWindow(QMainWindow):
             ["Project 1", "2024-03-01", "Project", "A", "100/100", "Download", "Upload"],
             ["Homework 2", "2024-03-15", "Homework", "B+", "85/100", "Download", "Upload"],
         ]
+
+        self.assignments = list()
+
+        for i in example_assignment:
+            self.assignments.append(Assignments(self, i[0], i[1], i[2], i[3], i[4], "test", "test_file"))
+
         self.initUI()
-    
+
     def initUI(self):
         # Main widget and layout
         mainWidget = QWidget()
@@ -144,60 +198,35 @@ class MainWindow(QMainWindow):
     def populateTable(self):
         global example_assignment
         
-        for row_data in example_assignment:
+        for row_data in self.assignments:
             row = self.tableWidget.rowCount()
             self.tableWidget.insertRow(row)
-            for column, data in enumerate(row_data[1:-2]):  # Adjusted to skip buttons
+            row_data_list = [row_data.date, row_data.category, row_data.letter_grade, row_data.fraction_grade]
+            for column, data in enumerate(row_data_list):  # Adjusted to skip buttons
+
                 self.tableWidget.setItem(row, column, QTableWidgetItem(data))
             
-            assignment_button = QPushButton(row_data[0])
+            assignment_button = QPushButton(row_data.name)
             self.tableWidget.setCellWidget(row, 0, assignment_button)
 
             # Adding Download Button
             downloadBtn = QPushButton('Download')
-            downloadBtn.clicked.connect(self.downloadClicked)
+            downloadBtn.clicked.connect(row_data.download)
             self.tableWidget.setCellWidget(row, 4, downloadBtn)
             
             # Adding Upload Button
             uploadBtn = QPushButton('Upload')
-            uploadBtn.clicked.connect(self.uploadClicked)
+            uploadBtn.clicked.connect(row_data.upload)
             self.tableWidget.setCellWidget(row, 5, uploadBtn)
             
     def downloadClicked(self):
         # Placeholder for download functionality
-        header = {
-            'session' : user_data['session']
-        }
-        
-        param = {
-            'file_owner': user_data['username'],
-            'file_name' : "Test"
-        }
-
-        r = requests.get(f"{api}/download",headers=header,params=param)
-        
-        if(r.status_code == 200):
-            print("Download Successful")
-        else:
-            print("Error Downloading")
+        pass
 
         
     def uploadClicked(self):
         # Placeholder for upload functionality
-        header = {
-            'session' : user_data['session']
-        }
-
-        data = {
-            'circuit_json' : None
-        }
-        
-        r = requests.post(f"{api}/upload",headers=header,data=data)
-
-        if(r.status_code == 200):
-            print("Upload Successful")
-        else:
-            print("Error Uploading")
+        pass
 
 
     def openSignInDialog(self):
@@ -213,10 +242,6 @@ class MainWindow(QMainWindow):
                 'password' : password_hash.hexdigest()
             }
             
-            # TEST
-            class request:
-                def json(self):
-                    return {"session":"TEST123","success":True}
             
             r = requests.post(f"{api}/login",json=data)
 
@@ -238,7 +263,10 @@ class MainWindow(QMainWindow):
             
             self = signOutButton
                 
-    def signOutFunction(self):    
+    def signOutFunction(self):
+        global user_data    
+        user_data = {'signed_in':False}
+
         with open("session/session","w") as outfile:
             pass
             
